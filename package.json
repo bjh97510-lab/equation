@@ -1,0 +1,29 @@
+{
+  "name": "equation-acorn-explorers",
+  "version": "1.0.0",
+  "description": "방정식 도토리 탐험대 - 중학교 방정식 학습 웹앱",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "katex": "^0.16.11",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.26.2"
+  },
+  "devDependencies": {
+    "@testing-library/dom": "^10.4.2",
+    "@testing-library/react": "^16.3.3",
+    "@vitejs/plugin-react": "^4.3.1",
+    "jsdom": "^25.0.1",
+    "vite": "^5.4.8",
+    "vite-plugin-singlefile": "^2.3.3",
+    "vitest": "^2.1.2"
+  }
+}
