@@ -335,6 +335,7 @@ function genWordConsecutive() {
   const text = `연속하는 두 자연수의 곱이 ${prod}입니다. 두 수 중 작은 수를 구하세요.`;
   return singleFinish(wordBase('w-consec', [n]), n, {
     question: { kind: 'word', text, latex: '' },
+    guided: { form: 'quadratic-word', type: 'w-consec', params: { n, prod } },
     answerDisplay: `${n}`,
     solutionSteps: [
       { expr: `x(x + 1) = ${prod}`, note: '작은 수를 x 로 놓기' },
@@ -359,6 +360,7 @@ function genWordRectangle() {
   const text = `가로의 길이가 세로의 길이보다 ${d}cm 더 긴 직사각형의 넓이가 ${area}cm²입니다. 세로의 길이는 몇 cm일까요?`;
   return singleFinish(wordBase('w-rect', [w, d]), w, {
     question: { kind: 'word', text, latex: '' },
+    guided: { form: 'quadratic-word', type: 'w-rect', params: { w, d, area } },
     answerDisplay: `${w}cm`,
     solutionSteps: [
       { expr: `x(x + ${d}) = ${area}`, note: '세로를 x, 가로를 x + ' + d },
@@ -382,6 +384,7 @@ function genWordSquareGrow() {
   const text = `한 변의 길이가 x cm인 정사각형의 각 변을 ${inc}cm씩 늘였더니 넓이가 ${area}cm²가 되었습니다. 처음 정사각형의 한 변의 길이 x 를 구하세요.`;
   return singleFinish(wordBase('w-square', [s, inc]), s, {
     question: { kind: 'word', text, latex: '' },
+    guided: { form: 'quadratic-word', type: 'w-square', params: { s, inc, area } },
     answerDisplay: `${s}cm`,
     solutionSteps: [
       { expr: `(x + ${inc})^2 = ${area}`, note: '늘어난 한 변은 x + ' + inc },
@@ -405,6 +408,7 @@ function genWordBall() {
   const text = `지면에서 초속 ${v}m로 똑바로 위로 던진 공의 t초 후 높이는 (${v}t - 5t²)m입니다. 공이 다시 지면에 떨어지는 것은 던진 지 몇 초 후일까요?`;
   return singleFinish(wordBase('w-ball', [v]), t, {
     question: { kind: 'word', text, latex: '' },
+    guided: { form: 'quadratic-word', type: 'w-ball', params: { v, t } },
     answerDisplay: `${t}초 후`,
     solutionSteps: [
       { expr: `${v}t - 5t^2 = 0`, note: '지면에 떨어지면 높이가 0' },
@@ -435,6 +439,7 @@ function genWordSumSquare() {
       : `어떤 양수를 제곱한 값은 ${kText}보다 ${m}만큼 큽니다. 이 수를 구하세요.`;
   return singleFinish(wordBase('w-num', [r, s]), r, {
     question: { kind: 'word', text, latex: '' },
+    guided: { form: 'quadratic-word', type: 'w-num', params: { r, s, k, m } },
     answerDisplay: `${r}`,
     solutionSteps: [
       { expr: k === 0 ? `x^2 = ${m}` : `x^2 = ${linearExpr(k, m)}`, note: '어떤 수를 x 로 놓기' },
@@ -444,7 +449,7 @@ function genWordSumSquare() {
     ],
     hints: [
       `구하는 수를 x 라 하고 문장을 식으로 옮겨 보세요.`,
-      `${quadExpr(1, -k, -m)} = 0`,
+      `$${quadExpr(1, -k, -m)} = 0$`,
       `인수분해하면 x = ${r} 또는 x = ${-s}. 양수인 것만!`,
     ],
     verify: (v) => v * v - k * v - m === 0 && v > 0,

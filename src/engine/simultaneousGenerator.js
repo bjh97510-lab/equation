@@ -94,6 +94,7 @@ function genBasicAddition() {
   const q = systemQuestion(e1, e2);
   return finish(base('add-elim', 'basic', 'addition', [e1.join('.'), e2.join('.')]), x, y, {
     question: q,
+    guided: { form: 'standard', eqs: [e1, e2] },
     solutionSteps: [
       { expr: q.latex, note: 'y 의 계수가 부호만 다르므로 두 식을 더하면 y 가 사라져요' },
       { expr: `${sumEq[0]}x = ${numLatex(sumEq[2])}`, note: '① + ②' },
@@ -122,6 +123,7 @@ function genBasicSubtraction() {
   const q = systemQuestion(e1, e2);
   return finish(base('sub-elim', 'basic', 'addition', [e1.join('.'), e2.join('.')]), x, y, {
     question: q,
+    guided: { form: 'standard', eqs: [e1, e2] },
     solutionSteps: [
       { expr: q.latex, note: 'x 의 계수가 같으므로 두 식을 빼면 x 가 사라져요' },
       { expr: `${linearExpr(diff[1], 0, 'y')} = ${numLatex(diff[2])}`, note: '① - ②' },
@@ -155,6 +157,7 @@ function genOneScale() {
   const q = systemQuestion(e1, e2);
   return finish(base('one-scale', 'standard', 'addition', [e1.join('.'), e2.join('.')]), x, y, {
     question: q,
+    guided: { form: 'standard', eqs: [e1, e2] },
     solutionSteps: [
       { expr: q.latex, note: `①에 ${k}을(를) 곱하면 x 의 계수가 ${a2}로 같아져요` },
       { expr: `${eqLatex(...scaled)}`, note: `① × ${k}` },
@@ -178,7 +181,9 @@ function genSubstitution(difficulty = 'standard') {
   const n = randNonZero(-6, 6);
   const y = m * x + n; // y = m x + n
   const a = randInt(1, 4);
-  const b = randNonZero(-4, 4);
+  let b = randNonZero(-4, 4);
+  // a + b·m = 0 이면 대입 후 x 가 사라지는(해가 하나로 정해지지 않는) 연립방정식이 되므로 피한다
+  if (a + b * m === 0) b = b > 0 ? b + 1 : b - 1;
   const c = a * x + b * y;
   const e1 = [-m, 1, n]; // y - m x = n  → 표시는 y = m x + n
   const e2 = [a, b, c];
@@ -193,6 +198,7 @@ function genSubstitution(difficulty = 'standard') {
   const konst = b * n;
   return finish(base('subst', difficulty, 'substitution', [m, n, a, b, c]), x, y, {
     question: q,
+    guided: { form: 'subst', eqs: [e1, e2], subst: { m, n } },
     solutionSteps: [
       { expr: q.latex, note: '①이 y = … 꼴이므로 대입법이 편해요' },
       { expr: `${a === 1 ? 'x' : a + 'x'} + ${b === 1 ? '' : wrapNeg(b)}(${linearExpr(m, n)}) = ${numLatex(c)}`, note: '①을 ②에 대입' },
@@ -238,6 +244,7 @@ function genTwoScale() {
   const q = systemQuestion(e1, e2);
   return finish(base('two-scale', 'advanced', 'addition', [e1.join('.'), e2.join('.')]), x, y, {
     question: q,
+    guided: { form: 'standard', eqs: [e1, e2] },
     solutionSteps: [
       { expr: q.latex, note: `x 의 계수 ${a1}, ${a2} 의 최소공배수 ${L} 로 맞춰요` },
       { expr: eqLatex(...s1), note: `① × ${k1}` },
@@ -274,6 +281,7 @@ function genBracketSystem() {
   const diff = [0, e1[1] - s2[1], e1[2] - s2[2]];
   return finish(base('bracket', 'advanced', 'addition', [p, r, b2, x, y]), x, y, {
     question: q,
+    guided: { form: 'bracket', eqs: [e1, e2], bracket: { p, r } },
     solutionSteps: [
       { expr: q.latex, note: '먼저 ①의 괄호를 풀어 ax + by = c 꼴로 정리해요' },
       { expr: eqLatex(...e1), note: '① 정리' },
@@ -308,6 +316,18 @@ function genWordPrice() {
   const e2 = [pa, pb, money];
   return finish(wordBase('w-fruit', [pa, pb, x, y]), x, y, {
     question: { kind: 'word', text, latex: '' },
+    guided: {
+      form: 'word',
+      eqs: [e1, e2],
+      setup: {
+        intro: `사과를 $x$ 개, 귤을 $y$ 개 샀다고 할 때, **개수**에 대한 식과 **금액**에 대한 식을 세워 보세요.`,
+        lines: [
+          { label: '① 개수 :', latex: 'x + y = \\square', answers: [total], hint: '사과와 귤을 합하여 모두 몇 개 샀나요?' },
+          { label: '② 금액 :', latex: '\\square x + \\square y = \\square', answers: [pa, pb, money], hint: `(사과 1개 값)×(사과 개수) + (귤 1개 값)×(귤 개수) = 전체 금액. 사과는 ${pa}원, 귤은 ${pb}원이에요.` },
+        ],
+        after: '두 식을 세웠어요. 이제 가감법으로 풀어 봐요.',
+      },
+    },
     answerDisplay: `사과 ${x}개, 귤 ${y}개`,
     solutionSteps: [
       { expr: `\\begin{cases} x + y = ${total} \\\\ ${pa}x + ${pb}y = ${money} \\end{cases}`, note: '개수와 금액으로 식 세우기' },
@@ -338,6 +358,18 @@ function genWordStudents() {
   const e2 = [1, -1, diff];
   return finish(wordBase('w-students', [boys, girls]), boys, girls, {
     question: { kind: 'word', text, latex: '' },
+    guided: {
+      form: 'word',
+      eqs: [e1, e2],
+      setup: {
+        intro: `남학생을 $x$ 명, 여학생을 $y$ 명이라 할 때, **전체 학생 수**에 대한 식과 **두 수의 차**에 대한 식을 세워 보세요.`,
+        lines: [
+          { label: '① 합 :', latex: 'x + y = \\square', answers: [total], hint: '반 전체 학생 수예요.' },
+          { label: '② 차 :', latex: 'x - y = \\square', answers: [diff], hint: diff >= 0 ? `남학생이 ${diff}명 더 많으므로 (남학생) − (여학생) = ${diff}` : `여학생이 ${-diff}명 더 많으므로 (남학생) − (여학생) 은 음수예요: −${-diff}` },
+        ],
+        after: '합과 차로 식을 세웠어요. 두 식을 더하면 y 가 사라지겠죠?',
+      },
+    },
     answerDisplay: `남학생 ${boys}명, 여학생 ${girls}명`,
     solutionSteps: [
       { expr: `\\begin{cases} x + y = ${total} \\\\ x - y = ${diff} \\end{cases}`, note: '합과 차로 식 세우기' },
@@ -364,6 +396,18 @@ function genWordLegs() {
   const e2 = [2, 4, legs];
   return finish(wordBase('w-legs', [x, y]), x, y, {
     question: { kind: 'word', text, latex: '' },
+    guided: {
+      form: 'word',
+      eqs: [e1, e2],
+      setup: {
+        intro: `닭을 $x$ 마리, 토끼를 $y$ 마리라 할 때, **마리 수**에 대한 식과 **다리 수**에 대한 식을 세워 보세요.`,
+        lines: [
+          { label: '① 마리 수 :', latex: 'x + y = \\square', answers: [heads], hint: '닭과 토끼를 합한 전체 마리 수예요.' },
+          { label: '② 다리 수 :', latex: '\\square x + \\square y = \\square', answers: [2, 4, legs], hint: '닭은 다리가 2개, 토끼는 4개예요. (2)×(닭 수) + (4)×(토끼 수) = 전체 다리 수' },
+        ],
+        after: '두 식을 세웠어요. 이제 가감법으로 풀어 봐요.',
+      },
+    },
     answerDisplay: `닭 ${x}마리, 토끼 ${y}마리`,
     solutionSteps: [
       { expr: `\\begin{cases} x + y = ${heads} \\\\ 2x + 4y = ${legs} \\end{cases}`, note: '마리 수와 다리 수로 식 세우기' },
@@ -393,6 +437,18 @@ function genWordAge() {
   const e2 = [1, -1, x - y];
   return finish(wordBase('w-age', [x, y, n]), x, y, {
     question: { kind: 'word', text, latex: '' },
+    guided: {
+      form: 'word',
+      eqs: [e1, e2],
+      setup: {
+        intro: `현재 아버지의 나이를 $x$ 살, 아들의 나이를 $y$ 살이라 할 때 식을 세워 보세요. ${n}년 후에는 두 사람 모두 ${n}살씩 많아지므로 **나이의 차는 변하지 않아요.**`,
+        lines: [
+          { label: '① 나이의 합 :', latex: 'x + y = \\square', answers: [sum], hint: '현재 두 사람의 나이의 합이에요.' },
+          { label: '② 나이의 차 :', latex: 'x - y = \\square', answers: [x - y], hint: `(x + ${n}) − (y + ${n}) = x − y 이므로 지금의 나이 차도 ${x - y}살이에요.` },
+        ],
+        after: '합과 차로 식을 세웠어요. 두 식을 더하면 y 가 사라지겠죠?',
+      },
+    },
     answerDisplay: `아버지 ${x}살, 아들 ${y}살`,
     solutionSteps: [
       { expr: `\\begin{cases} x + y = ${sum} \\\\ (x + ${n}) - (y + ${n}) = ${x - y} \\end{cases}`, note: '나이 차는 시간이 지나도 변하지 않아요' },
@@ -429,6 +485,19 @@ function genWordSpeed() {
   const s2 = [L / a, L / b, T * L];
   return finish(wordBase('w-speed', [a, b, x, y]), x, y, {
     question: { kind: 'word', text, latex: '' },
+    guided: {
+      form: 'word',
+      eqs: [e1, s2],
+      clear: { index: 1, factor: L },
+      setup: {
+        intro: `걸은 거리를 $x$ km, 달린 거리를 $y$ km 라 할 때, **거리**에 대한 식과 **시간**에 대한 식을 세워 보세요. (시간 = 거리 ÷ 속력)`,
+        lines: [
+          { label: '① 거리 :', latex: 'x + y = \\square', answers: [D], hint: '집에서 도서관까지의 전체 거리예요.' },
+          { label: '② 시간 :', latex: `\\dfrac{x}{${a}} + \\dfrac{y}{${b}} = \\square`, answers: [T], hint: `걸은 시간 x/${a} 와 달린 시간 y/${b} 의 합이 총 걸린 시간이에요.` },
+        ],
+        after: '두 식을 세웠어요. ②에 분수가 있으니 먼저 분모를 없애요.',
+      },
+    },
     answerDisplay: `걸은 거리 ${x}km, 달린 거리 ${y}km`,
     solutionSteps: [
       { expr: `\\begin{cases} x + y = ${D} \\\\ \\dfrac{x}{${a}} + \\dfrac{y}{${b}} = ${T} \\end{cases}`, note: '거리 식과 시간 식 (시간 = 거리 ÷ 속력)' },
@@ -465,6 +534,19 @@ function genWordConcentration() {
   const e2 = [F(a, 100), F(b, 100), salt];
   return finish(wordBase('w-salt', [a, b, x, y]), x, y, {
     question: { kind: 'word', text, latex: '' },
+    guided: {
+      form: 'word',
+      eqs: [e1, [a, b, salt * 100]],
+      clear: { index: 1, factor: 100 },
+      setup: {
+        intro: `${a}% 소금물을 $x$ g, ${b}% 소금물을 $y$ g 섞는다고 할 때, **소금물의 양**에 대한 식과 **소금의 양**에 대한 식을 세워 보세요. (소금의 양 = 농도/100 × 소금물의 양)`,
+        lines: [
+          { label: '① 소금물 :', latex: 'x + y = \\square', answers: [total], hint: '만들려는 소금물의 전체 양이에요.' },
+          { label: '② 소금 :', latex: `\\dfrac{${a}}{100}x + \\dfrac{${b}}{100}y = \\square`, answers: [salt], hint: `만들려는 소금물에 들어 있는 소금의 양: ${cText}/100 × ${total} = ${salt}` },
+        ],
+        after: '두 식을 세웠어요. ②에 분수가 있으니 먼저 분모를 없애요.',
+      },
+    },
     answerDisplay: `${a}% 소금물 ${x}g, ${b}% 소금물 ${y}g`,
     solutionSteps: [
       { expr: `\\begin{cases} x + y = ${total} \\\\ \\dfrac{${a}}{100}x + \\dfrac{${b}}{100}y = \\dfrac{${cText}}{100} \\times ${total} \\end{cases}`, note: '소금물 양 식과 소금 양 식' },

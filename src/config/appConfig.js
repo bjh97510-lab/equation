@@ -122,3 +122,16 @@ export const REQUEST_TIMEOUT_MS = 12000;
 
 /** localStorage 키 접두사 (버전 변경 시 데이터 구조 분리용) */
 export const STORAGE_PREFIX = 'ade_v1';
+
+/**
+ * "단계별 풀이"(빈칸 채우기·질문으로 한 단계씩 풀기)를 제공하는 단원과 난이도
+ *  - 연립일차방정식: 모든 난이도
+ *  - 일차·이차방정식: 도전(활용) 문제
+ */
+export const GUIDED_DIFFICULTIES = {
+  linear: ['challenge'],
+  simultaneous: ['basic', 'standard', 'advanced', 'challenge'],
+  quadratic: ['challenge'],
+};
+
+export const GUIDED_UNITS = Object.keys(GUIDED_DIFFICULTIES);

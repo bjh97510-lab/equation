@@ -29,6 +29,11 @@ export function verifyProblem(p) {
     }
     if (p.answerType === 'pair') {
       if (!isFiniteNum(p.answer.x) || !isFiniteNum(p.answer.y)) return false;
+      // 단계별 풀이용 계수가 있으면 해가 하나뿐인지(행렬식 ≠ 0) 확인
+      if (p.guided?.eqs) {
+        const [[a1, b1], [a2, b2]] = p.guided.eqs;
+        if (![a1, b1, a2, b2].every(isFiniteNum) || a1 * b2 - a2 * b1 === 0) return false;
+      }
       if (typeof p.verify === 'function') return !!p.verify(p.answer.x, p.answer.y);
       return true;
     }

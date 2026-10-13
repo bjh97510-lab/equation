@@ -340,6 +340,7 @@ function genWordConsecutive() {
   const text = `연속하는 세 자연수의 합이 ${sum}입니다. 세 수 중 가장 작은 수를 구하세요.`;
   return finish(wordBase('w-consec', [sum]), x, {
     question: { kind: 'word', text, latex: '', hintEq: 'x + (x+1) + (x+2) = ' + sum },
+    guided: { form: 'linear-word', type: 'w-consec', params: { x, sum } },
     answerDisplay: `${x}`,
     solutionSteps: [
       { expr: `x + (x + 1) + (x + 2) = ${sum}`, note: '가장 작은 수를 x 로 놓고 식 세우기' },
@@ -368,6 +369,7 @@ function genWordAge() {
   void years;
   return finish(wordBase('w-age', [child, diff]), n, {
     question: { kind: 'word', text, latex: '' },
+    guided: { form: 'linear-word', type: 'w-age', params: { mother: child + diff, child, n } },
     answerDisplay: `${n}년 후`,
     solutionSteps: [
       { expr: `${child + diff} + x = 2(${child} + x)`, note: 'x년 후의 나이로 식 세우기' },
@@ -393,6 +395,7 @@ function genWordPrice() {
   const text = `한 자루에 ${pen}원인 연필 몇 자루와 한 권에 ${note}원인 공책 ${nNote}권을 사고 ${total.toLocaleString()}원을 냈습니다. 연필은 몇 자루 샀을까요?`;
   return finish(wordBase('w-price', [pen, note, nNote, x]), x, {
     question: { kind: 'word', text, latex: '' },
+    guided: { form: 'linear-word', type: 'w-price', params: { pen, noteCost: note * nNote, total, x } },
     answerDisplay: `${x}자루`,
     solutionSteps: [
       { expr: `${pen}x + ${note * nNote} = ${total}`, note: '연필 수를 x 로 놓고 식 세우기' },
@@ -427,6 +430,7 @@ function genWordDistance() {
   const l2 = a * b / (function g(p, q) { return q ? g(q, p % q) : p; })(a, b);
   return finish(wordBase('w-dist', [a, b, x]), x, {
     question: { kind: 'word', text, latex: '' },
+    guided: { form: 'linear-word', type: 'w-dist', params: { a, b, t, L: l2, x } },
     answerDisplay: `${x}km`,
     solutionSteps: [
       { expr: `\\frac{x}{${a}} + \\frac{x}{${b}} = ${tF.toLatex()}`, note: '거리를 x km 로 놓고 (시간 = 거리 ÷ 속력)' },
@@ -451,6 +455,7 @@ function genWordRectangle() {
   const text = `가로의 길이가 세로의 길이보다 ${extra}cm 더 긴 직사각형의 둘레가 ${peri}cm입니다. 세로의 길이는 몇 cm일까요?`;
   return finish(wordBase('w-rect', [w, extra]), w, {
     question: { kind: 'word', text, latex: '' },
+    guided: { form: 'linear-word', type: 'w-rect', params: { w, extra, peri } },
     answerDisplay: `${w}cm`,
     solutionSteps: [
       { expr: `2\\{x + (x + ${extra})\\} = ${peri}`, note: '세로를 x, 가로를 x + ' + extra + ' 로 놓기' },
@@ -476,6 +481,7 @@ function genWordCount() {
   const text = `500원짜리 동전과 100원짜리 동전을 합하여 ${total}개를 가지고 있는데 총 금액이 ${money.toLocaleString()}원입니다. 500원짜리 동전은 몇 개일까요?`;
   return finish(wordBase('w-coin', [total, x]), x, {
     question: { kind: 'word', text, latex: '' },
+    guided: { form: 'linear-word', type: 'w-coin', params: { total, money, x } },
     answerDisplay: `${x}개`,
     solutionSteps: [
       { expr: `500x + 100(${total} - x) = ${money}`, note: '500원 동전을 x개, 100원 동전을 (' + total + ' - x)개로 놓기' },

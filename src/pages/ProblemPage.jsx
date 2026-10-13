@@ -5,20 +5,28 @@ import { Button, Chip, Loading } from '../components/common/UI.jsx';
 import ProblemSolver from '../components/problem/ProblemSolver.jsx';
 import { UNIT_MAP, DIFFICULTIES, DIFFICULTY_MAP, DIFFICULTY_REWARDS } from '../config/appConfig.js';
 import { generateProblem } from '../engine/problemGenerator.js';
+import { isGuidedSupported } from '../engine/guided.js';
 
-function DifficultySelect({ unit, onPick }) {
+/**
+ * 난이도 선택
+ *  allowed: 선택 가능한 난이도 id 목록 (생략하면 모두). 나머지는 "준비 중"으로 비활성화.
+ */
+export function DifficultySelect({ unit, onPick, allowed = null }) {
   return (
     <div>
       <h2>난이도를 선택하세요</h2>
       <div className="card-grid cols-4">
-        {DIFFICULTIES.map((d) => (
-          <button key={d.id} type="button" className="diff-card" onClick={() => onPick(d.id)}>
-            <span className="em">{d.emoji}</span>
-            <span className="nm">{d.label}</span>
-            <span className="ds">{d.desc}</span>
-            <span className="rw">정답 시 🌰 {DIFFICULTY_REWARDS[d.id]}</span>
-          </button>
-        ))}
+        {DIFFICULTIES.map((d) => {
+          const ok = !allowed || allowed.includes(d.id);
+          return (
+            <button key={d.id} type="button" className={`diff-card ${ok ? '' : 'disabled'}`} onClick={() => ok && onPick(d.id)} disabled={!ok} aria-disabled={!ok}>
+              <span className="em">{d.emoji}</span>
+              <span className="nm">{d.label}</span>
+              <span className="ds">{ok ? d.desc : '단계별 풀이 준비 중'}</span>
+              <span className="rw">{ok ? `정답 시 🌰 ${DIFFICULTY_REWARDS[d.id]}` : '—'}</span>
+            </button>
+          );
+        })}
       </div>
       <p className="small muted mt-2">{UNIT_MAP[unit].emoji} 문제는 매번 새로 만들어지고, 정답은 프로그램이 식에 대입해 검증한 뒤 출제돼요.</p>
     </div>
@@ -160,7 +168,20 @@ export default function ProblemPage() {
       ) : !problem ? (
         <Loading text="🌰 문제를 만들고 있어요..." />
       ) : (
-        <ProblemSolver key={problem.id} problem={problem} onSubmit={onSubmit} onNext={makeProblem} nextLabel="다음 문제 ▶" />
+        <ProblemSolver
+          key={problem.id}
+          problem={problem}
+          onSubmit={onSubmit}
+          onNext={makeProblem}
+          nextLabel="다음 문제 ▶"
+          extraActions={
+            isGuidedSupported(problem) ? (
+              <Button variant="ghost" to={`/unit/${unit}/guided?difficulty=${problem.difficulty}`} state={{ problem }}>
+                🪜 이 문제를 단계별로 풀기
+              </Button>
+            ) : null
+          }
+        />
       )}
       {problem && !summary && data.stats.streak >= 3 && <p className="center small mt-2" style={{ color: 'var(--brown-700)', fontWeight: 700 }}>🔥 현재 {data.stats.streak}연속 정답 중!</p>}
     </div>

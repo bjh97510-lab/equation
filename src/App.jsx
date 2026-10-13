@@ -12,6 +12,7 @@ import ConceptLearnPage from './pages/ConceptLearnPage.jsx';
 import CardsPage from './pages/CardsPage.jsx';
 import ConceptCheckPage from './pages/ConceptCheckPage.jsx';
 import ProblemPage from './pages/ProblemPage.jsx';
+import GuidedSolvePage from './pages/GuidedSolvePage.jsx';
 import WrongNotePage from './pages/WrongNotePage.jsx';
 import RecordPage from './pages/RecordPage.jsx';
 import RewardPage from './pages/RewardPage.jsx';
@@ -62,6 +63,7 @@ export default function App() {
                 <Route path="/unit/:unit/cards" element={<CardsPage />} />
                 <Route path="/unit/:unit/check" element={<ConceptCheckPage />} />
                 <Route path="/unit/:unit/problems" element={<ProblemPage />} />
+                <Route path="/unit/:unit/guided" element={<GuidedSolvePage />} />
                 <Route path="/wrong" element={<WrongNotePage />} />
                 <Route path="/record" element={<RecordPage />} />
                 <Route path="/reward" element={<RewardPage />} />

@@ -254,6 +254,7 @@ export default function ProblemSolver({ problem, onSubmit, onNext, nextLabel = '
             <Button variant="ghost" onClick={onNext}>
               {nextLabel}
             </Button>
+            {extraActions}
           </div>
         </div>
       )}
@@ -299,7 +300,7 @@ export default function ProblemSolver({ problem, onSubmit, onNext, nextLabel = '
   );
 }
 
-function answerLatex(problem) {
+export function answerLatex(problem) {
   if (problem.answerType === 'roots') {
     const [a, b] = problem.rootsLatex || problem.answer.display || [];
     if (problem.answer.isDouble) return `x = ${a}\\;(\\text{중근})`;

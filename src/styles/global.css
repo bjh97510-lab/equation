@@ -1312,3 +1312,80 @@ table.tbl tr.clickable:hover td {
     transition: none !important;
   }
 }
+
+/* ───── 단계별 풀이 ───── */
+.guided-step {
+  margin-top: 12px;
+  animation: pop 0.25s ease;
+}
+.guided-step-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+.guided-step-title h3 {
+  margin: 0;
+}
+.guided-step-title .num {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--forest-700);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+.guided-line .line-label,
+.guided-notes .line-label {
+  font-weight: 700;
+  color: var(--brown-700);
+  margin-right: 4px;
+  white-space: nowrap;
+}
+.guided-line.done {
+  opacity: 0.85;
+}
+.guided-line .input.blank {
+  width: 76px;
+}
+.guided-notes {
+  margin-top: 12px;
+  padding: 10px 14px;
+  background: #fbf6e8;
+  border: 1px dashed #e4cf9a;
+  border-radius: var(--radius-sm);
+}
+.guided-notes summary {
+  cursor: pointer;
+  font-weight: 800;
+  color: #8a6418;
+}
+.guided-notes ol {
+  margin: 8px 0 0;
+  padding-left: 20px;
+  display: grid;
+  gap: 6px;
+}
+.guided-notes li .t {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+.guided-notes li .lines {
+  font-size: 1.05rem;
+  display: grid;
+  gap: 2px;
+}
+.diff-card.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: var(--surface-2);
+}
+.diff-card.disabled:hover {
+  transform: none;
+  box-shadow: none;
+  border-color: var(--border);
+}

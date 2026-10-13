@@ -30,6 +30,8 @@ export function textToHtml(text) {
       }
       let html = escapeHtml(part);
       html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+      // 수식 기호 없이 쓴 "x^2", "t^2" 같은 제곱 표기는 위첨자로
+      html = html.replace(/([A-Za-z0-9)\]])\^(\d+)/g, '$1<sup>$2</sup>');
       html = html.replace(/\n/g, '<br/>');
       return html;
     })

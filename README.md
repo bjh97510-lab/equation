@@ -5,9 +5,42 @@
 학습 기록은 교사의 **Google Sheets** 에 저장됩니다(Apps Script 중계).
 
 ```
-로그인 → 개념 진입 → 단계별 개념학습 → 개념 확인 → 난이도 선택 → 문제풀이
+로그인 → 개념 진입 → 단계별 개념학습 → 개념 확인 → 난이도 선택 → 문제풀이 / 단계별 풀이
       → 즉각적 피드백 → 도토리 보상 → 칭찬도장 → 학습기록 저장 → 개인별 성장 확인
 ```
+
+### 🪜 단계별 풀이
+
+각 단원 메뉴의 **단계별 풀이**, 또는 문제 풀기 화면의 **"이 문제를 단계별로 풀기"** 버튼으로 들어갑니다.
+문제를 한 번에 풀지 않고, **질문에 답하고 빈칸을 채우며** 한 단계씩 해를 구합니다.
+
+| 단원 | 지원 범위 | 흐름 |
+|---|---|---|
+| 연립일차방정식 | 모든 난이도 | 아래 표 (학생의 선택에 따라 단계가 바뀜) |
+| 일차방정식 | 도전(활용) 문제 | 미지수 정하기(질문) → 식 세우기 → 괄호·분모 정리 → 이항 → 해 → 검산 |
+| 이차방정식 | 도전(활용) 문제 | 미지수 정하기(질문) → 식 세우기 → = 0 꼴 정리 → 인수분해/제곱근 → 두 근 → **조건에 맞는 근 고르기(질문)** → 검산 |
+
+일차·이차의 다른 난이도는 난이도 선택 화면에서 "준비 중"으로 비활성화됩니다.
+
+**연립일차방정식의 단계**
+
+| 단계 | 방식 | 내용 |
+|---|---|---|
+| 식 세우기 / 괄호 풀기 / 분모 없애기 | 빈칸 | 활용 문제는 식부터 세우고, 괄호·분수가 있으면 먼저 정리 |
+| 풀이 방법 고르기 | 질문 | ①이 `y = …` 꼴이면 대입법·가감법 중 선택 (둘 다 진행 가능) |
+| 없앨 미지수 고르기 | 질문 | x, y 어느 쪽을 골라도 그 선택에 맞춰 이후 단계가 바뀜 |
+| 계수의 절댓값 맞추기 | 빈칸 | 각 식에 곱할 수 → 곱한 식 완성 |
+| 더할까, 뺄까? | 질문 | 부호가 다르면 더하기, 같으면 빼기 (틀리면 이유를 알려주고 다시 선택) |
+| 미지수 없애기 → 값 구하기 | 빈칸 | 남은 일차방정식 완성 → 값 (①−② 대신 ②−①로 계산해도 정답 인정) |
+| 대입할 식 고르기 | 질문 | 어느 식이든 가능 |
+| 나머지 미지수 구하기 → 검산 | 빈칸 | 대입·이항·나누기 → 다른 식에 대입해 확인 |
+| 최종 정답 | 입력 | x, y 입력 → 정답이면 도토리 지급(일반 풀이와 같은 기준, 문제당 1회) |
+
+- 빈칸을 틀리면 그 줄의 힌트가 나타나고, 같은 단계에서 2번 틀리면 **답 채워 보기** 버튼으로 정답을 보고 넘어갈 수 있습니다.
+- 완성한 식은 **풀이 노트**에 쌓여 언제든 다시 볼 수 있습니다.
+- 단계별 풀이 중 틀린 횟수·답 보기 횟수는 학습 로그의 `hintLevel` 로 기록됩니다.
+- 지원 단원·난이도는 `appConfig.js` 의 `GUIDED_DIFFICULTIES` 로 정합니다.
+- 힌트·설명 문장 안의 수식은 `$...$` 로 감싸면 KaTeX 로 렌더링되고, 기호 없이 쓴 `x^2` 같은 제곱 표기도 자동으로 위첨자로 표시됩니다.
 
 ---
 
@@ -47,7 +80,9 @@ equation/
 │   ├─ rewards.test.js          # 도토리→도장 변환 (1, 10, 19, 20, 27)
 │   ├─ store.test.js            # 학생 ID, 로그인 검증, 서버 복원, 배지, 추천
 │   ├─ services.test.js         # 로컬 저장, Mock 시트, 전송 대기열 재전송
-│   └─ ui.test.jsx              # 로그인→문제풀이→오답노트→복원→로그아웃 UI 흐름
+│   ├─ ui.test.jsx              # 로그인→문제풀이→오답노트→복원→로그아웃 UI 흐름
+│   ├─ guided.test.js           # 단계별 풀이 플래너: 모든 선택 경로에서 빈칸 정답의 수학적 일관성·KaTeX 렌더링
+│   └─ guided-ui.test.jsx       # 단계별 풀이 UI: 선택→빈칸→최종 정답, 답 채워 보기
 └─ src/
     ├─ main.jsx / App.jsx       # 진입점, 라우팅(HashRouter), 로그인 보호
     ├─ config/appConfig.js      # ★ 교사 수정용 설정 (보상, 도장 기준, 힌트 단계, 시트 URL…)
@@ -55,7 +90,12 @@ equation/
     │   ├─ fraction.js          # 정확한 유리수 연산
     │   ├─ format.js            # LaTeX 수식 포맷
     │   ├─ linearGenerator.js   # 중1 문제 생성 + 정답 + 풀이 + 힌트
-    │   ├─ simultaneousGenerator.js  # 중2
+    │   ├─ simultaneousGenerator.js  # 중2 (+ guided: 단계별 풀이용 계수 메타데이터)
+    │   ├─ guided.js                 # 단계별 풀이 통합 진입점 (planGuided / isGuidedSupported)
+    │   ├─ guidedCommon.js           # 단계 형식 공통 도구 (빈칸 채우기 표시, 단계 빌더)
+    │   ├─ guidedSimultaneous.js     # 연립방정식 플래너 (학생 선택에 따라 단계 생성)
+    │   ├─ guidedLinear.js           # 일차방정식 도전 문제 단계 (유형별)
+    │   ├─ guidedQuadratic.js        # 이차방정식 도전 문제 단계 (유형별)
     │   ├─ quadraticGenerator.js     # 중3
     │   ├─ validator.js         # 생성 문제 대입 검증
     │   ├─ answerNormalizer.js  # 답안 정규화·판정 (분수/소수/√/순서 무관)
@@ -74,9 +114,10 @@ equation/
     │   ├─ common/              # MathText(KaTeX), UI, ErrorBoundary
     │   ├─ layout/AppShell.jsx  # 헤더·하단 내비·칭찬도장/배지 알림
     │   ├─ learning/            # FlipCard, FillBlank, ChoiceBlock, BlockRenderer
-    │   └─ problem/ProblemSolver.jsx  # 입력·판정·힌트 3단계·풀이 카드·피드백
-    ├─ pages/                   # Login, Home, Learn, Unit, ConceptLearn, Cards,
-    │                           # ConceptCheck, Problem, WrongNote, Record, Reward, Teacher
+    │   ├─ problem/ProblemSolver.jsx  # 입력·판정·힌트 3단계·풀이 카드·피드백
+    │   └─ problem/GuidedSolver.jsx   # 단계별 풀이 (선택형·빈칸·최종 정답·풀이 노트)
+    ├─ pages/                   # Login, Home, Learn, Unit, ConceptLearn, Cards, ConceptCheck,
+    │                           # Problem, GuidedSolve(단계별 풀이), WrongNote, Record, Reward, Teacher
     └─ styles/global.css        # 디자인 시스템 (숲·도토리 테마, 반응형)
 ```
 
@@ -161,6 +202,7 @@ npm test
 | 오답 | 자동 저장, 재도전, 복습 완료 + 보너스, 통계 중복 반영 없음 |
 | 저장 | 학생별 분리, Mock 시트 중복 로그 제거, 네트워크 오류 후 재전송 |
 | UI | 로그인→문제→힌트→오답노트→오답 정복→교사 대시보드 전 흐름(jsdom) |
+| 단계별 풀이 | 연립: 4난이도×120문제×5가지 선택 경로 모두 완주, 각 빈칸 정답을 해에 대입해 검증 · 일차/이차 도전: 전 유형 완주, 답이 단계에 등장, 직렬화 후 동일 · 수식 조각 KaTeX 렌더링 · UI 완주, 오답 2회 후 답 채우기, 힌트 제곱 표기 |
 
 ---
 
