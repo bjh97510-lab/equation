@@ -67,6 +67,7 @@ function genPureSquare() {
   const roots = [F(r), F(-r)];
   return finish(base('pure', 'basic', 'sqrt', [a]), roots, {
     question: { kind: 'equation', latex },
+    guided: { form: 'quadratic', type: 'pure', params: { a, r } },
     solutionSteps: [
       { expr: latex, note: '제곱해서 ' + a + ' 이 되는 수를 찾아요' },
       { expr: `x = \\pm\\sqrt{${a}}`, note: '제곱근 이용' },
@@ -88,6 +89,7 @@ function genSquareMinusConst() {
   const roots = [F(r), F(-r)];
   return finish(base('pure2', 'basic', 'sqrt', [a]), roots, {
     question: { kind: 'equation', latex },
+    guided: { form: 'quadratic', type: 'pure2', params: { a, r } },
     solutionSteps: [
       { expr: latex, note: '처음 식' },
       { expr: `x^2 = ${a}`, note: `${a}을(를) 우변으로 이항` },
@@ -111,6 +113,7 @@ function genShiftedSquare() {
   const roots = [F(-p + s), F(-p - s)];
   return finish(base('shift', 'basic', 'sqrt', [p, q]), roots, {
     question: { kind: 'equation', latex },
+    guided: { form: 'quadratic', type: 'shift', params: { p, q, s } },
     solutionSteps: [
       { expr: latex, note: '괄호 전체를 하나의 수로 생각해요' },
       { expr: `${xPlus(p)} = \\pm ${s}`, note: '제곱근 이용' },
@@ -136,6 +139,7 @@ function genFactorMonic() {
   const roots = [F(r1), F(r2)];
   return finish(base('monic', 'standard', 'factoring', [b, c]), roots, {
     question: { kind: 'equation', latex },
+    guided: { form: 'quadratic', type: 'monic', params: { b, c, r1, r2 } },
     solutionSteps: [
       { expr: latex, note: `곱해서 ${c}, 더해서 ${b} 이 되는 두 수를 찾아요` },
       { expr: `${factorLatex(F(r1))}${factorLatex(F(r2))} = 0`, note: `두 수: ${-r1}, ${-r2}` },
@@ -158,6 +162,7 @@ function genCommonFactor() {
   const roots = [F(0), F(-b)];
   return finish(base('common', 'standard', 'factoring', [b]), roots, {
     question: { kind: 'equation', latex },
+    guided: { form: 'quadratic', type: 'common', params: { b } },
     solutionSteps: [
       { expr: latex, note: '두 항에 공통으로 x 가 있어요' },
       { expr: `x(${xPlus(b)}) = 0`, note: '공통인수 x 로 묶기' },
@@ -180,6 +185,7 @@ function genDoubleRoot() {
   const roots = [F(r), F(r)];
   return finish(base('double', 'standard', 'complete-square', [b, c]), roots, {
     question: { kind: 'equation', latex },
+    guided: { form: 'quadratic', type: 'double', params: { b, c, r } },
     solutionSteps: [
       { expr: latex, note: `상수항 ${c} = (${-r})² 이고 x 의 계수가 2 × (${-r}) 이에요` },
       { expr: `(${xPlus(-r)})^2 = 0`, note: '완전제곱식' },
@@ -205,6 +211,8 @@ function genFactorNonMonic() {
   const b = -(p * r2 + q * r1);
   const c = r1 * r2;
   const g = gcd(gcd(a, b), c);
+  // 계수에 공통인수가 있으면 인수분해 꼴이 식과 달라져 단계별 풀이가 어색해지므로 다시 만든다
+  if (g > 1) return genFactorNonMonic();
   const A = a / g, B = b / g, C = c / g;
   const latex = `${quadExpr(A, B, C)} = 0`;
   const roots = [F(r1, p), F(r2, q)];
@@ -212,6 +220,7 @@ function genFactorNonMonic() {
   const f2 = `(${linearExpr(q, -r2)})`;
   return finish(base('nonmonic', 'advanced', 'factoring', [A, B, C]), roots, {
     question: { kind: 'equation', latex },
+    guided: { form: 'quadratic', type: 'nonmonic', params: { A, B, C, p, q, r1, r2 } },
     solutionSteps: [
       { expr: latex, note: 'x² 의 계수가 1 이 아닌 이차방정식' },
       ...(g > 1 ? [{ expr: `${quadExpr(a, b, c)} = 0`, note: `참고: 양변에 ${g}을(를) 곱한 꼴로도 볼 수 있어요` }] : []),
@@ -239,6 +248,7 @@ function genIrrationalShift() {
   ];
   return finish(base('irr-shift', 'advanced', 'sqrt', [p, q]), roots, {
     question: { kind: 'equation', latex, note: '답은 √ 기호를 사용하여 입력하세요. 예: 1+√2, 1-√2' },
+    guided: { form: 'quadratic', type: 'irr-shift', params: { p, q } },
     solutionSteps: [
       { expr: latex, note: '제곱근 이용' },
       { expr: `${xPlus(p)} = \\pm\\sqrt{${q}}`, note: '' },
@@ -268,6 +278,7 @@ function genFormula() {
   ];
   return finish(base('formula', 'advanced', 'formula', [b, c]), roots, {
     question: { kind: 'equation', latex, note: '답은 √ 기호를 사용하여 입력하세요. 예: 2+√3, 2-√3' },
+    guided: { form: 'quadratic', type: 'formula', params: { b, c, D, q, h } },
     solutionSteps: [
       { expr: latex, note: '인수분해가 되지 않으면 근의 공식!' },
       { expr: `x = \\dfrac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}`, note: `a = 1, b = ${b}, c = ${c}` },
@@ -298,6 +309,7 @@ function genCompleteSquare() {
   const s = Math.round(Math.sqrt(k));
   return finish(base('complete', 'advanced', 'complete-square', [b, c]), roots, {
     question: { kind: 'equation', latex, note: '완전제곱식을 이용해 풀어 보세요.' },
+    guided: { form: 'quadratic', type: 'complete', params: { b, c, h, k, s, r1, r2 } },
     solutionSteps: [
       { expr: latex, note: '처음 식' },
       { expr: `x^2 ${b > 0 ? '+' : '-'} ${Math.abs(b)}x = ${-c}`, note: '상수항 이항' },

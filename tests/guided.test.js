@@ -180,71 +180,78 @@ describe('연립방정식 단계별 풀이 플래너', () => {
   });
 });
 
-describe('일차·이차방정식 도전 문제 단계별 풀이', () => {
+describe('일차·이차방정식 단계별 풀이 (모든 난이도)', () => {
+  const TYPE_COUNT = {
+    linear: { basic: 3, standard: 2, advanced: 6, challenge: 6 },
+    quadratic: { basic: 3, standard: 3, advanced: 4, challenge: 5 },
+  };
+  const num = (v) => (typeof v === 'number' ? v : v.toNumber());
   for (const unit of ['linear', 'quadratic']) {
-    it(`${unit}/challenge: 모든 활용 문제가 단계별 풀이를 지원하고 빈칸 정답이 일관된다`, () => {
-      const seenTypes = new Set();
-      for (let i = 0; i < 200; i++) {
-        const p = generateProblem(unit, 'challenge', []);
-        expect(isGuidedSupported(p)).toBe(true);
-        seenTypes.add(p.guided.type);
-        const { steps, complete } = planGuided(p, {});
-        expect(complete).toBe(true);
-        expect(estimateTotalSteps(p, {})).toBe(steps.length);
-        expect(steps[steps.length - 1].kind).toBe('final');
-        const keys = steps.map((s) => s.key);
-        expect(new Set(keys).size).toBe(keys.length);
-        expect(keys).toContain('check');
-        const answer = p.answer.value;
-        let answerAppears = false;
-        for (const s of steps) {
-          if (s.kind === 'choice') {
-            expect(s.options.filter((o) => o.correct).length).toBe(1);
-            for (const o of s.options) expect(o.feedback).toBeTruthy();
-            if (s.key === 'pick') {
-              // 조건에 맞는 근 고르기: 정답 보기가 문제의 답과 같다
-              const good = s.options.find((o) => o.correct);
-              expect(good.label).toContain(`= ${answer}`);
-              answerAppears = true;
-            }
-          }
-          if (s.kind === 'blanks') {
-            for (const line of s.lines) {
-              const blanks = line.latex.split('\square').length - 1;
-              expect(blanks).toBe(line.answers.length);
-              expect(blanks).toBeGreaterThan(0);
-              for (const a of line.answers) {
-                expect(Number.isFinite(a)).toBe(true);
-                expect(checkSingle(String(a), a).correct).toBe(true);
-                if (Math.abs(a - answer) < 1e-9) answerAppears = true;
+    for (const d of DIFFS) {
+      it(`${unit}/${d}: 모든 유형이 단계별 풀이를 지원하고 빈칸 정답이 일관된다`, () => {
+        const seenTypes = new Set();
+        for (let i = 0; i < 200; i++) {
+          const p = generateProblem(unit, d, []);
+          expect(isGuidedSupported(p)).toBe(true);
+          seenTypes.add(p.guided.type);
+          const { steps, complete } = planGuided(p, {});
+          expect(complete).toBe(true);
+          expect(estimateTotalSteps(p, {})).toBe(steps.length);
+          expect(steps[steps.length - 1].kind).toBe('final');
+          const keys = steps.map((s) => s.key);
+          expect(new Set(keys).size).toBe(keys.length);
+          expect(keys).toContain('check');
+          const blankValues = [];
+          for (const s of steps) {
+            expect(s.title).toBeTruthy();
+            if (s.kind === 'choice') {
+              expect(s.options.filter((o) => o.correct).length).toBe(1);
+              expect(s.options.length).toBeGreaterThanOrEqual(2);
+              for (const o of s.options) {
+                expect(o.feedback).toBeTruthy();
+                expect(o.label).toBeTruthy();
               }
-              assertRenders(line.latex);
-              expect(line.hint).toBeTruthy();
             }
-            for (const sm of s.summary) {
-              expect(sm.latex.includes('\square')).toBe(false);
-              assertRenders(sm.latex);
+            if (s.kind === 'blanks') {
+              for (const line of s.lines) {
+                const blanks = line.latex.split('\square').length - 1;
+                expect(blanks).toBe(line.answers.length);
+                expect(blanks).toBeGreaterThan(0);
+                for (const a of line.answers) {
+                  expect(Number.isFinite(num(a))).toBe(true);
+                  // 학생이 그 값을 그대로 입력하면 정답 처리된다 (분수는 "7/3" 꼴)
+                  expect(checkSingle(String(a), a).correct).toBe(true);
+                  blankValues.push(num(a));
+                }
+                assertRenders(line.latex);
+                expect(line.hint).toBeTruthy();
+              }
+              for (const sm of s.summary) {
+                expect(sm.latex.includes('\square')).toBe(false);
+                assertRenders(sm.latex);
+              }
             }
           }
+          const appears = (v) => blankValues.some((b) => Math.abs(b - v) < 1e-9);
+          if (p.answerType === 'single') {
+            // 답이 단계 어딘가에 등장하거나 (활용) 조건에 맞는 근 고르기 보기로 등장
+            const pick = steps.find((s) => s.key === 'pick');
+            expect(appears(p.answer.value) || (pick && pick.options.find((o) => o.correct).label.includes(`= ${p.answer.value}`))).toBe(true);
+          } else {
+            // 두 근: roots 단계가 있고, 유리근이면 각 근이 빈칸 값으로 등장
+            expect(keys).toContain('roots');
+            for (const r of p.answer.roots) {
+              const rational = Math.abs(r * 60 - Math.round(r * 60)) < 1e-9;
+              if (rational) expect(appears(r)).toBe(true);
+            }
+          }
+          const again = planGuided(JSON.parse(JSON.stringify(p)), {});
+          expect(again.steps.map((s) => s.key)).toEqual(keys);
         }
-        expect(answerAppears).toBe(true);
-        // 검산 단계의 빈칸 값은 문제 조건의 수(합·금액·넓이·0 등)와 같아야 한다
-        const check = steps.find((s) => s.key === 'check');
-        for (const v of check.lines[0].answers) expect(Number.isFinite(v)).toBe(true);
-        // 직렬화(오답노트 저장) 후에도 같은 단계가 나온다
-        const again = planGuided(JSON.parse(JSON.stringify(p)), {});
-        expect(again.steps.map((s) => s.key)).toEqual(keys);
-      }
-      // 모든 유형이 적어도 한 번은 출제되어 검사됨
-      expect(seenTypes.size).toBe(unit === 'linear' ? 6 : 5);
-    });
-  }
-
-  it('일차·이차방정식의 다른 난이도는 아직 단계별 풀이를 지원하지 않는다', () => {
-    for (const unit of ['linear', 'quadratic']) {
-      for (const d of ['basic', 'standard', 'advanced']) expect(isGuidedSupported(generateProblem(unit, d, []))).toBe(false);
+        expect(seenTypes.size).toBe(TYPE_COUNT[unit][d]);
+      });
     }
-  });
+  }
 });
 
 describe('힌트의 제곱 표기', () => {

@@ -204,8 +204,10 @@ function FinalStep({ step, problem, onSubmit, result }) {
     setTimeout(() => firstRef.current?.focus(), 50);
   }, []);
   const isPair = problem.answerType === 'pair';
-  const needed = isPair ? 2 : 1;
-  const filled = values.slice(0, needed).every((v) => String(v).trim() !== '');
+  const isRoots = problem.answerType === 'roots';
+  const needed = isPair || isRoots ? 2 : 1;
+  // 두 근은 중근일 때 한 칸만 채워도 된다
+  const filled = isRoots ? values.some((v) => String(v).trim() !== '') : values.slice(0, needed).every((v) => String(v).trim() !== '');
   const solved = !!result?.correct;
 
   const submit = () => {
@@ -219,20 +221,26 @@ function FinalStep({ step, problem, onSubmit, result }) {
     onSubmit(values.slice(0, needed), judged.correct);
   };
 
+  const label1 = isPair ? 'x =' : isRoots ? 'x₁ =' : problem.question.kind === 'word' ? '답 =' : 'x =';
+  const aria1 = isPair ? '최종 x 값' : isRoots ? '최종 첫 번째 근' : '최종 답';
+  const label2 = isPair ? 'y =' : 'x₂ =';
+  const aria2 = isPair ? '최종 y 값' : '최종 두 번째 근';
+
   return (
     <div>
       <p className="block-text">{step.prompt}</p>
       <div className="answer-row">
-        <span className="lbl">{isPair ? 'x =' : '답 ='}</span>
-        <input ref={firstRef} className="input answer" aria-label={isPair ? '최종 x 값' : '최종 답'} value={values[0]} disabled={solved} autoComplete="off" onChange={(e) => setValues([e.target.value, values[1]])} onKeyDown={(e) => e.key === 'Enter' && submit()} />
-        {isPair && (
+        <span className="lbl">{label1}</span>
+        <input ref={firstRef} className="input answer" aria-label={aria1} value={values[0]} disabled={solved} autoComplete="off" onChange={(e) => setValues([e.target.value, values[1]])} onKeyDown={(e) => e.key === 'Enter' && submit()} />
+        {needed === 2 && (
           <>
-            <span className="lbl">y =</span>
-            <input className="input answer" aria-label="최종 y 값" value={values[1]} disabled={solved} autoComplete="off" onChange={(e) => setValues([values[0], e.target.value])} onKeyDown={(e) => e.key === 'Enter' && submit()} />
+            <span className="lbl">{label2}</span>
+            <input className="input answer" aria-label={aria2} value={values[1]} disabled={solved} autoComplete="off" onChange={(e) => setValues([values[0], e.target.value])} onKeyDown={(e) => e.key === 'Enter' && submit()} />
           </>
         )}
       </div>
-      {invalid && <p className="form-error">입력을 이해하지 못했어요. 숫자, 분수(3/2), 소수(1.5) 형태로 입력해 주세요.</p>}
+      {isRoots && <p className="small muted">두 근의 순서는 상관없어요. 중근이면 한 칸만 채워도 돼요. √ 는 "루트2" 또는 "sqrt(2)" 로 입력할 수 있어요.</p>}
+      {invalid && <p className="form-error">입력을 이해하지 못했어요. 숫자, 분수(3/2), 소수(1.5), 루트(√5) 형태로 입력해 주세요.</p>}
       {!solved && (
         <div className="btn-row">
           <Button onClick={submit} disabled={!filled} size="lg">
@@ -243,7 +251,7 @@ function FinalStep({ step, problem, onSubmit, result }) {
       {result && !result.correct && (
         <div className="feedback bad" role="status" aria-live="polite">
           <h3>🌱 거의 다 왔어요!</h3>
-          <p>{isPair ? '풀이 노트에서 구한 x, y 값을 다시 확인해 보세요. 두 값의 순서가 바뀌지 않았는지도 살펴보세요.' : '풀이 노트에서 구한 값과 문제가 묻는 것(단위, 조건)을 다시 확인해 보세요.'}</p>
+          <p>{isPair ? '풀이 노트에서 구한 x, y 값을 다시 확인해 보세요. 두 값의 순서가 바뀌지 않았는지도 살펴보세요.' : isRoots ? '풀이 노트에서 구한 두 근을 다시 확인해 보세요. 부호와 근호 표기를 살펴보세요.' : '풀이 노트에서 구한 값과 문제가 묻는 것(단위, 조건)을 다시 확인해 보세요.'}</p>
         </div>
       )}
     </div>

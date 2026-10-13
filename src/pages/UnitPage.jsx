@@ -35,7 +35,7 @@ export default function UnitPage() {
             to: `/unit/${unit}/guided`,
             ico: '🪜',
             title: '단계별 풀이',
-            desc: unit === 'simultaneous' ? '질문에 답하고 빈칸을 채우며 한 단계씩 천천히' : '도전(활용) 문제를 질문과 빈칸으로 한 단계씩',
+            desc: '질문에 답하고 빈칸을 채우며 한 단계씩 천천히',
             badge: <Chip tone="gold">NEW</Chip>,
           },
         ]

@@ -23,7 +23,7 @@ export function fillBlanks(latex, answers) {
     if (idx < 0) break;
     let before = out.slice(0, idx);
     let after = out.slice(idx + '\\square'.length);
-    let s = numLatex(ans);
+    let s = typeof ans === 'string' ? ans : numLatex(ans);
     const isCoef = /^\s*[xyt]/.test(after);
     if (isCoef) {
       after = after.replace(/^\s+/, '');
@@ -46,7 +46,7 @@ export function blanksStep(key, title, prompt, lines, explain) {
     prompt,
     lines,
     explain,
-    summary: lines.map((l) => ({ label: l.label || '', latex: fillBlanks(l.latex, l.answers) })),
+    summary: lines.map((l) => ({ label: l.label || '', latex: fillBlanks(l.latex, l.display || l.answers) })),
   };
 }
 
@@ -63,7 +63,12 @@ export function finalStep(prompt = '위에서 구한 답을 정리해서 적어 
   return { key: 'final', kind: 'final', title: '최종 정답', prompt };
 }
 
-/** 빈칸 줄 하나 */
-export function line(label, latex, answers, hint, alt) {
-  return { label, latex, answers, hint, ...(alt ? { alt } : {}) };
+/**
+ * 빈칸 줄 하나
+ *  answers : 판정용 값 (숫자 또는 Fraction). 무리수(√5 등)는 수치로 두고 display 로 표시를 지정한다.
+ *  alt     : 다른 순서/부호로 써도 정답인 조합들
+ *  display : 풀이 노트에 채워 넣을 LaTeX (생략하면 answers 를 그대로 표시)
+ */
+export function line(label, latex, answers, hint, alt, display) {
+  return { label, latex, answers, hint, ...(alt ? { alt } : {}), ...(display ? { display } : {}) };
 }

@@ -5,6 +5,8 @@
  *  여기서 type 별로 "식 세우기 → 정리 → 이항 → 해 → 검산" 단계를 만든다.
  */
 import { blanksStep, choiceStep, line } from './guidedCommon.js';
+import { numLatex, linearExpr, xPlus } from './format.js';
+import { F } from './fraction.js';
 
 const BUILDERS = {
   /* 연속하는 세 자연수의 합 */
@@ -88,6 +90,163 @@ const BUILDERS = {
     ];
   },
 };
+
+/* ───────────── 기초·기본·발전 (방정식 풀이) ───────────── */
+
+/** 값을 괄호로 감싼 표시 (음수 대비): 2 × (-3) */
+const par = (v) => `(${numLatex(v)})`;
+
+/** 상수항 이항 선택 문제 (부호가 바뀐다는 것을 확인) */
+function moveConstChoice(b, side = '우변') {
+  const abs = Math.abs(b);
+  const sgn = b > 0 ? '+' : '-';
+  const opp = b > 0 ? '-' : '+';
+  return choiceStep('move-choice', '이항 알아보기', `$x$ 항만 남기려면 상수항 $${sgn}${abs}$ 을(를) ${side}으로 옮겨야 해요. 옮기면 어떻게 될까요?`, [
+    { id: 'a', label: `${side}에 $${opp}${abs}$ 이 된다 (부호가 바뀐다)`, correct: true, feedback: '맞아요! 이항하면 부호가 바뀌어요. 양변에 같은 수를 더하거나 뺀 것과 같아요.' },
+    { id: 'b', label: `${side}에 $${sgn}${abs}$ 이 된다 (부호 그대로)`, correct: false, feedback: `이항은 양변에서 ${sgn}${abs} 을 없애는 거예요. 그대로 옮기면 등식이 깨져요.` },
+    { id: 'c', label: `$x$ 의 계수에 곱한다`, correct: false, feedback: '더하거나 빼는 항은 곱셈으로 옮길 수 없어요.' },
+  ]);
+}
+
+Object.assign(BUILDERS, {
+  /* x + a = b */
+  add({ a, b, x }) {
+    return [
+      choiceStep('op-choice', '어떻게 할까?', `$x + ${a} = ${b}$ 에서 $x$ 를 혼자 남기려면 양변에 어떻게 해야 할까요?`, [
+        { id: 'a', label: `양변에서 ${a} 을(를) 뺀다`, correct: true, feedback: `맞아요! 양변에서 ${a} 을 빼면 좌변에 x 만 남아요.` },
+        { id: 'b', label: `양변에 ${a} 을(를) 더한다`, correct: false, feedback: `더하면 좌변이 x + ${2 * a} 이 되어 x 가 혼자 남지 않아요.` },
+        { id: 'c', label: `양변을 ${a} 으로 나눈다`, correct: false, feedback: `+${a} 은 더해진 수예요. 나누기가 아니라 빼기로 없애요.` },
+      ]),
+      blanksStep('solve', 'x 구하기', `양변에서 ${a} 을 빼서 $x$ 를 구하세요.`, [line('', `x = ${b} - \\square`, [a], `좌변의 +${a} 을 없애려고 빼는 수예요.`), line('', `x = \\square`, [x], `${b} − ${a} 을 계산하세요.`)], `$x = ${x}$ 이에요.`),
+      blanksStep('check', '검산하기', `$x = ${x}$ 을 처음 식에 넣어 확인해요.`, [line('검산 :', `${par(x)} + ${a} = \\square`, [b], '더하세요.')], `우변 ${b} 과 같아요. ✅`),
+    ];
+  },
+
+  /* x - a = b */
+  sub({ a, b, x }) {
+    return [
+      choiceStep('op-choice', '어떻게 할까?', `$x - ${a} = ${numLatex(b)}$ 에서 $x$ 를 혼자 남기려면 양변에 어떻게 해야 할까요?`, [
+        { id: 'a', label: `양변에 ${a} 을(를) 더한다`, correct: true, feedback: `맞아요! −${a} 을 없애려면 ${a} 을 더해요.` },
+        { id: 'b', label: `양변에서 ${a} 을(를) 뺀다`, correct: false, feedback: `빼면 좌변이 x − ${2 * a} 이 돼요. −${a} 의 반대는 +${a}!` },
+        { id: 'c', label: `양변에 ${a} 을(를) 곱한다`, correct: false, feedback: `−${a} 은 뺀 수예요. 곱하기가 아니라 더하기로 없애요.` },
+      ]),
+      blanksStep('solve', 'x 구하기', `양변에 ${a} 을 더해서 $x$ 를 구하세요.`, [line('', `x = ${numLatex(b)} + \\square`, [a], `좌변의 −${a} 을 없애려고 더하는 수예요.`), line('', `x = \\square`, [x], `${numLatex(b)} + ${a} 를 계산하세요.`)], `$x = ${x}$ 이에요.`),
+      blanksStep('check', '검산하기', `$x = ${x}$ 을 처음 식에 넣어 확인해요.`, [line('검산 :', `${x} - ${a} = \\square`, [b], '빼세요.')], `우변 ${numLatex(b)} 과 같아요. ✅`),
+    ];
+  },
+
+  /* a x = b */
+  mul({ a, b, x }) {
+    return [
+      choiceStep('op-choice', '어떻게 할까?', `$${a}x = ${numLatex(b)}$ 에서 $x$ 하나의 값을 알려면 양변에 어떻게 해야 할까요?`, [
+        { id: 'a', label: `양변을 ${a} 으로 나눈다`, correct: true, feedback: `맞아요! ${a}x 는 x 를 ${a}번 더한 것이므로 ${a} 으로 나누면 x 하나의 값이에요.` },
+        { id: 'b', label: `양변에서 ${a} 을(를) 뺀다`, correct: false, feedback: `${a}x 는 "${a} 곱하기 x" 예요. 빼기로는 없앨 수 없어요.` },
+        { id: 'c', label: `양변에 ${a} 을(를) 곱한다`, correct: false, feedback: `곱하면 ${a * a}x 가 되어 더 복잡해져요.` },
+      ]),
+      blanksStep('solve', 'x 구하기', `양변을 ${a} 으로 나누세요.`, [line('', `x = ${numLatex(b)} \\div \\square`, [a], `x 의 계수예요.`), line('', `x = \\square`, [x], `${numLatex(b)} ÷ ${a} 를 계산하세요. 부호에 주의!`)], `$x = ${x}$ 이에요.`),
+      blanksStep('check', '검산하기', `$x = ${x}$ 을 처음 식에 넣어 확인해요.`, [line('검산 :', `${a} \\times ${par(x)} = \\square`, [b], '곱하세요.')], `우변 ${numLatex(b)} 과 같아요. ✅`),
+    ];
+  },
+
+  /* a x + b = c */
+  axb({ a, b, c, x }) {
+    return [
+      moveConstChoice(b),
+      blanksStep('move', '상수항 이항', `상수항을 우변으로 옮겨 $${a}x$ 만 남기세요.`, [line('', `${a}x = \\square`, [c - b], `${numLatex(c)} ${b > 0 ? '−' : '+'} ${Math.abs(b)} 을 계산하세요.`)], `$${a}x = ${numLatex(c - b)}$ 이 되었어요.`),
+      blanksStep('solve', 'x 구하기', `양변을 ${a} 으로 나누세요.`, [line('', `x = \\square`, [x], `${numLatex(c - b)} ÷ ${a}`)], `$x = ${x}$ 이에요.`),
+      blanksStep('check', '검산하기', `$x = ${x}$ 을 처음 식에 넣어 확인해요.`, [line('검산 :', `${a} \\times ${par(x)} ${b > 0 ? '+' : '-'} ${Math.abs(b)} = \\square`, [c], `${a}×(${x}) = ${a * x} 에 ${b} 을 더하세요.`)], `우변 ${numLatex(c)} 과 같아요. ✅`),
+    ];
+  },
+
+  /* c - a x = d */
+  cax({ a, c, d, x }) {
+    return [
+      choiceStep('move-choice', '이항 알아보기', `$${c} - ${a}x = ${numLatex(d)}$ 에서 $x$ 항은 $-${a}x$ 예요. 상수항 ${c} 을 우변으로 옮기면?`, [
+        { id: 'a', label: `$-${a}x = ${numLatex(d)} - ${c}$`, correct: true, feedback: '맞아요! 이항하면 부호가 바뀌고, x 항의 −부호는 그대로예요.' },
+        { id: 'b', label: `$${a}x = ${numLatex(d)} - ${c}$`, correct: false, feedback: `x 항은 −${a}x 예요. 이항한다고 x 항의 부호까지 바뀌지는 않아요.` },
+        { id: 'c', label: `$-${a}x = ${numLatex(d)} + ${c}$`, correct: false, feedback: '이항하면 부호가 바뀌어요. +c 는 우변에서 −c 가 돼요.' },
+      ]),
+      blanksStep('move', '상수항 이항', `우변을 계산하세요.`, [line('', `-${a}x = \\square`, [d - c], `${numLatex(d)} − ${c}`)], `$-${a}x = ${numLatex(d - c)}$ 이 되었어요.`),
+      blanksStep('solve', 'x 구하기', `양변을 $-${a}$ 으로 나누세요. 음수 ÷ 음수는 양수!`, [line('', `x = \\square`, [x], `${numLatex(d - c)} ÷ (−${a})`)], `$x = ${x}$ 이에요.`),
+      blanksStep('check', '검산하기', `$x = ${x}$ 을 처음 식에 넣어 확인해요.`, [line('검산 :', `${c} - ${a} \\times ${par(x)} = \\square`, [d], `${a}×(${x}) = ${a * x} 을 ${c} 에서 빼세요.`)], `우변 ${numLatex(d)} 과 같아요. ✅`),
+    ];
+  },
+
+  /* a(x + b) = c */
+  bracket({ a, b, c, x }) {
+    const ab = a * b;
+    return [
+      blanksStep('expand', '괄호 풀기', `분배법칙으로 ${a} 을 괄호 안의 두 항에 각각 곱하세요.`, [line('전개 :', `\\square x + \\square = ${numLatex(c)}`, [a, ab], `${a} × x = ${a}x, ${a} × (${b}) = ${ab}`)], `$${linearExpr(a, ab)} = ${numLatex(c)}$ 이 되었어요.`),
+      blanksStep('move', '상수항 이항', `상수항 ${ab} 을 우변으로 옮기세요.`, [line('', `${a}x = \\square`, [c - ab], `${numLatex(c)} ${ab > 0 ? '−' : '+'} ${Math.abs(ab)}`)], `$${a}x = ${numLatex(c - ab)}$ 이 되었어요.`),
+      blanksStep('solve', 'x 구하기', `양변을 ${a} 으로 나누세요.`, [line('', `x = \\square`, [x], `${numLatex(c - ab)} ÷ ${a}`)], `$x = ${x}$ 이에요.`),
+      blanksStep('check', '검산하기', `$x = ${x}$ 을 처음 식에 넣어 확인해요. 괄호 안 $${x} ${b > 0 ? '+' : '-'} ${Math.abs(b)} = ${x + b}$ 이에요.`, [line('검산 :', `${a} \\times ${par(x + b)} = \\square`, [c], '곱하세요.')], `우변 ${numLatex(c)} 과 같아요. ✅`),
+    ];
+  },
+
+  /* a x + b = c x + d */
+  both({ a, b, c, d, x }) {
+    return [
+      choiceStep('move-choice', '이항 알아보기', `양변에 모두 $x$ 가 있어요. 어떻게 모을까요?`, [
+        { id: 'a', label: `$x$ 항은 좌변으로, 상수항은 우변으로 옮긴다 (옮기면 부호가 바뀐다)`, correct: true, feedback: '맞아요! 같은 종류의 항을 한쪽으로 모으면 일차방정식의 기본 꼴이 돼요.' },
+        { id: 'b', label: `$${c}x$ 를 부호 그대로 좌변에 더한다`, correct: false, feedback: '이항하면 부호가 바뀌어요. 우변의 +cx 는 좌변에서 −cx 가 돼요.' },
+        { id: 'c', label: `$x$ 항만 옮기고 상수항은 양쪽에 둔다`, correct: false, feedback: '상수항도 한쪽으로 모아야 x 의 값을 구할 수 있어요.' },
+      ]),
+      blanksStep('collect', '동류항 정리', `$${a}x - ${c}x = ${numLatex(d)} ${b > 0 ? '-' : '+'} ${Math.abs(b)}$ 을 계산하세요.`, [line('정리 :', `\\square x = \\square`, [a - c, d - b], `${a} − ${c} 과 ${numLatex(d)} ${b > 0 ? '−' : '+'} ${Math.abs(b)} 을 계산하세요.`)], `$${linearExpr(a - c, 0)} = ${numLatex(d - b)}$ 이 되었어요.`),
+      blanksStep('solve', 'x 구하기', `양변을 ${a - c} 으로 나누세요.`, [line('', `x = \\square`, [x], `${numLatex(d - b)} ÷ ${a - c}`)], `$x = ${x}$ 이에요.`),
+      blanksStep('check', '검산하기', `$x = ${x}$ 을 양변에 각각 넣어 같은 값이 나오는지 확인해요.`, [line('좌변 :', `${a} \\times ${par(x)} ${b > 0 ? '+' : '-'} ${Math.abs(b)} = \\square`, [a * x + b], '곱한 뒤 더하세요.'), line('우변 :', `${c} \\times ${par(x)} ${d > 0 ? '+' : '-'} ${Math.abs(d)} = \\square`, [c * x + d], '곱한 뒤 더하세요.')], '좌변과 우변이 같아요. ✅'),
+    ];
+  },
+
+  /* x/a + b = c */
+  fracx({ a, b, c, k, x }) {
+    return [
+      moveConstChoice(b),
+      blanksStep('move', '상수항 이항', `상수항을 우변으로 옮겨 $\\dfrac{x}{${a}}$ 만 남기세요.`, [line('', `\\dfrac{x}{${a}} = \\square`, [k], `${numLatex(c)} ${b > 0 ? '−' : '+'} ${Math.abs(b)}`)], `$\\dfrac{x}{${a}} = ${numLatex(k)}$ 이 되었어요.`),
+      blanksStep('solve', 'x 구하기', `분모 ${a} 을 없애려면 양변에 ${a} 을 곱해요.`, [line('', `x = ${numLatex(k)} \\times \\square = \\square`, [a, x], `양변에 곱하는 수는 분모 ${a}, 그다음 곱셈을 계산하세요.`)], `$x = ${x}$ 이에요.`),
+      blanksStep('check', '검산하기', `$x = ${x}$ 을 처음 식에 넣어 확인해요.`, [line('검산 :', `\\dfrac{${x}}{${a}} ${b > 0 ? '+' : '-'} ${Math.abs(b)} = \\square`, [c], `${x} ÷ ${a} = ${k} 에 ${b} 을 더하세요.`)], `우변 ${numLatex(c)} 과 같아요. ✅`),
+    ];
+  },
+
+  /* (x + a)/b = c */
+  fracp({ a, b, c, x }) {
+    return [
+      choiceStep('op-choice', '어떻게 할까?', `$\\dfrac{${xPlus(a)}}{${b}} = ${numLatex(c)}$ 에서 분모 ${b} 을 없애려면?`, [
+        { id: 'a', label: `양변에 ${b} 을(를) 곱한다`, correct: true, feedback: `맞아요! 분모와 같은 수를 곱하면 분수가 사라져요.` },
+        { id: 'b', label: `양변을 ${b} 으로 나눈다`, correct: false, feedback: '나누면 분모가 더 커져요. 반대로 곱해야 해요.' },
+        { id: 'c', label: `분자에서 ${b} 을(를) 뺀다`, correct: false, feedback: '분모는 빼기로 없앨 수 없어요.' },
+      ]),
+      blanksStep('clear', '분모 없애기', `양변에 ${b} 을 곱하세요.`, [line('', `${xPlus(a)} = \\square`, [b * c], `${numLatex(c)} × ${b}`)], `$${xPlus(a)} = ${numLatex(b * c)}$ 이 되었어요.`),
+      blanksStep('solve', 'x 구하기', `상수항 ${a} 을 우변으로 이항하세요.`, [line('', `x = \\square`, [x], `${numLatex(b * c)} ${a > 0 ? '−' : '+'} ${Math.abs(a)}`)], `$x = ${x}$ 이에요.`),
+      blanksStep('check', '검산하기', `$x = ${x}$ 을 처음 식에 넣어 확인해요. 분자는 $${x} ${a > 0 ? '+' : '-'} ${Math.abs(a)} = ${x + a}$ 이에요.`, [line('검산 :', `\\dfrac{${x + a}}{${b}} = \\square`, [c], '나누세요.')], `우변 ${numLatex(c)} 과 같아요. ✅`),
+    ];
+  },
+
+  /* 0.A x + 0.B = 0.C */
+  dec({ A, B, C, x }) {
+    return [
+      choiceStep('op-choice', '어떻게 할까?', `계수가 소수예요. 계산하기 쉽게 만들려면 어떻게 할까요?`, [
+        { id: 'a', label: '양변에 10을 곱해 정수 계수로 만든다', correct: true, feedback: '맞아요! 양변에 같은 수를 곱해도 해는 변하지 않아요.' },
+        { id: 'b', label: '양변을 10으로 나눈다', correct: false, feedback: '나누면 소수점이 더 늘어나요.' },
+        { id: 'c', label: '좌변의 소수점만 지운다', correct: false, feedback: '한쪽만 바꾸면 등식이 깨져요. 양변에 똑같이 해야 해요.' },
+      ]),
+      blanksStep('clear', '정수로 만들기', `양변의 모든 항에 10을 곱하세요.`, [line('× 10 :', `\\square x + \\square = \\square`, [A, B, C], `0.${A} × 10 = ${A}, 상수항과 우변도 10배!`)], `$${linearExpr(A, B)} = ${numLatex(C)}$ 이 되었어요.`),
+      blanksStep('move', '상수항 이항', `상수항을 우변으로 옮기세요.`, [line('', `${A}x = \\square`, [C - B], `${numLatex(C)} ${B > 0 ? '−' : '+'} ${Math.abs(B)}`)], `$${A}x = ${numLatex(C - B)}$ 이 되었어요.`),
+      blanksStep('solve', 'x 구하기', `양변을 ${A} 으로 나누세요.`, [line('', `x = \\square`, [x], `${numLatex(C - B)} ÷ ${A}`)], `$x = ${x}$ 이에요.`),
+      blanksStep('check', '검산하기', `$x = ${x}$ 을 정수로 만든 식에 넣어 확인해요.`, [line('검산 :', `${A} \\times ${par(x)} ${B > 0 ? '+' : '-'} ${Math.abs(B)} = \\square`, [C], `${A}×(${x}) = ${A * x} 에 ${B} 을 더하세요.`)], `우변 ${numLatex(C)} 과 같아요. ✅`),
+    ];
+  },
+
+  /* a x + b = c, 해가 분수 */
+  fsol({ a, b, c, ax, xn, xd }) {
+    const xF = F(xn, xd);
+    return [
+      moveConstChoice(b),
+      blanksStep('move', '상수항 이항', `상수항을 우변으로 옮겨 $${a}x$ 만 남기세요.`, [line('', `${a}x = \\square`, [ax], `${numLatex(c)} ${b > 0 ? '−' : '+'} ${Math.abs(b)}`)], `$${a}x = ${numLatex(ax)}$ 이 되었어요.`),
+      blanksStep('solve', 'x 구하기', `양변을 ${a} 으로 나누면 $x = \\dfrac{${ax}}{${a}}$ 예요. 나누어떨어지지 않으니 **기약분수**로 약분해서 쓰세요. (예: 3/2)`, [line('', `x = \\square`, [xF], `분자와 분모를 최대공약수로 나누세요. 분수는 "${xn}/${xd}" 처럼 입력해요.`)], `$x = ${xF.toLatex()}$ 이에요.`),
+      blanksStep('check', '검산하기', `$x = ${xF.toLatex()}$ 을 처음 식에 넣어 확인해요.`, [line('검산 :', `${a} \\times \\left(${xF.toLatex()}\\right) ${b > 0 ? '+' : '-'} ${Math.abs(b)} = \\square`, [c], `${a} × ${xn}/${xd} = ${ax} 에 ${b} 을 더하세요.`)], `우변 ${numLatex(c)} 과 같아요. ✅`),
+    ];
+  },
+});
 
 export function buildLinearSteps(problem) {
   const g = problem.guided;

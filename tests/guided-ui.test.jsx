@@ -180,3 +180,46 @@ describe('일차·이차방정식 도전 문제 단계별 풀이 UI', () => {
     });
   }
 });
+
+describe('일차·이차방정식 전 난이도 단계별 풀이 UI', () => {
+  beforeEach(() => {
+    cleanup();
+    window.scrollTo = () => {};
+  });
+
+  it('일차방정식 기초: 선택 → 빈칸 → x 입력까지 완주한다', () => {
+    const problem = generateProblem('linear', 'basic', []);
+    const onSubmit = vi.fn(() => ({ rewardEarned: 1 }));
+    render(
+      <MemoryRouter>
+        <GuidedSolver problem={problem} onSubmit={onSubmit} onNext={() => {}} />
+      </MemoryRouter>,
+    );
+    walkThrough(problem, {});
+    fireEvent.change(screen.getByLabelText('최종 답'), { target: { value: problem.answer.display } });
+    fireEvent.click(screen.getByRole('button', { name: /정답 확인/ }));
+    expect(onSubmit.mock.calls[0][1].correct).toBe(true);
+    expect(screen.getByText(/단계별 풀이 완료/)).toBeTruthy();
+  });
+
+  for (const d of ['basic', 'standard', 'advanced']) {
+    it(`이차방정식 ${d}: 두 근을 순서 바꿔 입력해도 정답 (무리근은 √ 표기)`, () => {
+      const problem = generateProblem('quadratic', d, []);
+      const onSubmit = vi.fn(() => ({ rewardEarned: 2 }));
+      render(
+        <MemoryRouter>
+          <GuidedSolver problem={problem} onSubmit={onSubmit} onNext={() => {}} />
+        </MemoryRouter>,
+      );
+      const { steps } = walkThrough(problem, {});
+      expect(steps.map((s) => s.key)).toContain('roots');
+      const [a, b] = problem.answer.display;
+      fireEvent.change(screen.getByLabelText('최종 첫 번째 근'), { target: { value: b } });
+      fireEvent.change(screen.getByLabelText('최종 두 번째 근'), { target: { value: a } });
+      fireEvent.click(screen.getByRole('button', { name: /정답 확인/ }));
+      expect(onSubmit).toHaveBeenCalledTimes(1);
+      expect(onSubmit.mock.calls[0][1].correct).toBe(true);
+      expect(screen.getByText(/단계별 풀이 완료/)).toBeTruthy();
+    });
+  }
+});

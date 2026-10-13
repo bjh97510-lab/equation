@@ -17,8 +17,8 @@ export function isGuidedSupported(problem) {
   const g = problem?.guided;
   if (!g) return false;
   if (problem.unit === 'simultaneous') return Array.isArray(g.eqs);
-  if (problem.unit === 'linear') return g.form === 'linear-word' && !!g.type;
-  if (problem.unit === 'quadratic') return g.form === 'quadratic-word' && !!g.type;
+  if (problem.unit === 'linear') return (g.form === 'linear' || g.form === 'linear-word') && !!g.type;
+  if (problem.unit === 'quadratic') return (g.form === 'quadratic' || g.form === 'quadratic-word') && !!g.type;
   return false;
 }
 

@@ -125,13 +125,12 @@ export const STORAGE_PREFIX = 'ade_v1';
 
 /**
  * "단계별 풀이"(빈칸 채우기·질문으로 한 단계씩 풀기)를 제공하는 단원과 난이도
- *  - 연립일차방정식: 모든 난이도
- *  - 일차·이차방정식: 도전(활용) 문제
+ *  세 단원 모두 모든 난이도를 지원한다. 특정 난이도를 끄려면 목록에서 빼면 된다.
  */
 export const GUIDED_DIFFICULTIES = {
-  linear: ['challenge'],
+  linear: ['basic', 'standard', 'advanced', 'challenge'],
   simultaneous: ['basic', 'standard', 'advanced', 'challenge'],
-  quadratic: ['challenge'],
+  quadratic: ['basic', 'standard', 'advanced', 'challenge'],
 };
 
 export const GUIDED_UNITS = Object.keys(GUIDED_DIFFICULTIES);

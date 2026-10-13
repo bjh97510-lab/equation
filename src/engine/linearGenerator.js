@@ -58,6 +58,7 @@ function genAdd() {
   const latex = `x + ${a} = ${b}`;
   return finish(base('add', 'basic', 'property', [a, b]), x, {
     question: { kind: 'equation', latex },
+    guided: { form: 'linear', type: 'add', params: { a, b, x } },
     solutionSteps: [
       { expr: latex, note: '처음 식' },
       { expr: `x = ${b} - ${a}`, note: `양변에서 ${a}을(를) 빼기` },
@@ -79,6 +80,7 @@ function genSub() {
   const latex = `x - ${a} = ${numLatex(b)}`;
   return finish(base('sub', 'basic', 'property', [a, b]), x, {
     question: { kind: 'equation', latex },
+    guided: { form: 'linear', type: 'sub', params: { a, b, x } },
     solutionSteps: [
       { expr: latex, note: '처음 식' },
       { expr: `x = ${numLatex(b)} + ${a}`, note: `양변에 ${a}을(를) 더하기` },
@@ -100,6 +102,7 @@ function genMul() {
   const latex = `${a}x = ${numLatex(b)}`;
   return finish(base('mul', 'basic', 'property', [a, b]), x, {
     question: { kind: 'equation', latex },
+    guided: { form: 'linear', type: 'mul', params: { a, b, x } },
     solutionSteps: [
       { expr: latex, note: '처음 식' },
       { expr: `x = ${numLatex(b)} \\div ${a}`, note: `양변을 ${a}으로 나누기` },
@@ -125,6 +128,7 @@ function genAxPlusB() {
   const ax = a * x;
   return finish(base('axb', 'standard', 'solve', [a, b, c]), x, {
     question: { kind: 'equation', latex },
+    guided: { form: 'linear', type: 'axb', params: { a, b, c, x } },
     solutionSteps: [
       { expr: latex, note: '처음 식' },
       {
@@ -152,6 +156,7 @@ function genCMinusAx() {
   const latex = `${c} - ${a}x = ${numLatex(d)}`;
   return finish(base('cax', 'standard', 'solve', [a, c, d]), x, {
     question: { kind: 'equation', latex },
+    guided: { form: 'linear', type: 'cax', params: { a, c, d, x } },
     solutionSteps: [
       { expr: latex, note: '처음 식' },
       { expr: `-${a}x = ${numLatex(d)} - ${c}`, note: `양변에서 ${c}을(를) 빼기` },
@@ -178,6 +183,7 @@ function genBracket() {
   const ab = a * b;
   return finish(base('bracket', 'advanced', 'bracket', [a, b, c]), x, {
     question: { kind: 'equation', latex },
+    guided: { form: 'linear', type: 'bracket', params: { a, b, c, x } },
     solutionSteps: [
       { expr: latex, note: '처음 식' },
       { expr: `${linearExpr(a, ab)} = ${numLatex(c)}`, note: '분배법칙으로 괄호 풀기' },
@@ -206,6 +212,7 @@ function genBothSides() {
   const konst = d - b;
   return finish(base('both', 'advanced', 'solve', [a, b, c, d]), x, {
     question: { kind: 'equation', latex },
+    guided: { form: 'linear', type: 'both', params: { a, b, c, d, x } },
     solutionSteps: [
       { expr: latex, note: '처음 식' },
       {
@@ -235,6 +242,7 @@ function genFraction() {
     const latex = `\\frac{x}{${a}} ${b > 0 ? '+' : '-'} ${Math.abs(b)} = ${numLatex(c)}`;
     return finish(base('fracx', 'advanced', 'fraction', [a, b, c]), x, {
       question: { kind: 'equation', latex },
+      guided: { form: 'linear', type: 'fracx', params: { a, b, c, k, x } },
       solutionSteps: [
         { expr: latex, note: '처음 식' },
         { expr: `\\frac{x}{${a}} = ${numLatex(c)} ${b > 0 ? '-' : '+'} ${Math.abs(b)}`, note: '상수항 이항' },
@@ -257,6 +265,7 @@ function genFraction() {
   const latex = `\\frac{${xPlus(a)}}{${b}} = ${numLatex(c)}`;
   return finish(base('fracp', 'advanced', 'fraction', [a, b, c]), x, {
     question: { kind: 'equation', latex },
+    guided: { form: 'linear', type: 'fracp', params: { a, b, c, x } },
     solutionSteps: [
       { expr: latex, note: '처음 식' },
       { expr: `${xPlus(a)} = ${numLatex(c)} \\times ${b}`, note: `양변에 ${b}을(를) 곱하기` },
@@ -284,6 +293,7 @@ function genDecimal() {
   const latex = `${decTerm(a, 'x')} ${b > 0 ? '+' : '-'} ${decLatex(Math.abs(b))} = ${decLatex(c)}`;
   return finish(base('dec', 'advanced', 'fraction', [A, B, C]), x, {
     question: { kind: 'equation', latex },
+    guided: { form: 'linear', type: 'dec', params: { A, B, C, x } },
     solutionSteps: [
       { expr: latex, note: '처음 식' },
       { expr: `${linearExpr(A, B)} = ${numLatex(C)}`, note: '양변에 10을 곱해 정수로 만들기' },
@@ -313,6 +323,7 @@ function genFractionSolution() {
   const ax = c - b;
   return finish(base('fsol', 'advanced', 'solve', [a, b, c]), x, {
     question: { kind: 'equation', latex },
+    guided: { form: 'linear', type: 'fsol', params: { a, b, c, ax, xn: x.n, xd: x.d } },
     solutionSteps: [
       { expr: latex, note: '처음 식' },
       { expr: `${a}x = ${numLatex(c)} ${b > 0 ? '-' : '+'} ${Math.abs(b)} = ${numLatex(ax)}`, note: '상수항 이항' },

@@ -167,18 +167,17 @@ describe('전체 학습 흐름 (UI)', () => {
     void vi;
   });
 
-  it('단계별 풀이: 단원 메뉴에 노출되고, 일차방정식은 도전 난이도만 열리며, 문제 풀기에서 같은 문제를 넘겨받는다', async () => {
+  it('단계별 풀이: 단원 메뉴에 노출되고, 일차방정식 기초 문제도 열리며, 문제 풀기에서 같은 문제를 넘겨받는다', async () => {
     render(<App />);
     await screen.findByText(/탐험 시작하기/);
     await loginAs();
     window.location.hash = '#/unit/simultaneous';
     await screen.findByText('단계별 풀이', {}, { timeout: 4000 });
-    // 일차방정식: 기초 난이도로 들어가면 난이도 선택으로 돌아가고, 도전만 선택 가능
-    window.location.hash = '#/unit/linear/guided?difficulty=basic';
+    // 일차방정식: 난이도 선택에서 모든 난이도가 열려 있고, 기초를 고르면 바로 시작
+    window.location.hash = '#/unit/linear/guided';
     await screen.findByText('난이도를 선택하세요', {}, { timeout: 4000 });
-    const disabledCards = document.querySelectorAll('.diff-card.disabled');
-    expect(disabledCards.length).toBe(3);
-    fireEvent.click(screen.getByRole('button', { name: /도전/ }));
+    expect(document.querySelectorAll('.diff-card.disabled').length).toBe(0);
+    fireEvent.click(screen.getByRole('button', { name: /기초/ }));
     await screen.findByText(/STEP 1 \//, {}, { timeout: 4000 });
     expect(screen.getByText(/한 단계씩 풀어 보세요/)).toBeTruthy();
 
